@@ -27,19 +27,21 @@ For more information, please refer to <http://unlicense.org/>
 
 #include "I2C.h"
 
+
 I2C::I2C() {}
 
 void I2C::init(uint8_t address) {
     this->address = address;
     TWSR = 0;
-    TWBR = ((F_CPU/SCL_CLOCK)-16)/2;
+    TWBR = (uint8_t)((F_CPU/SCL_CLOCK)-16)/2;
 }
 
 uint8_t I2C::start() {
     TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
     while(!(TWCR & (1<<TWINT)));
 
-    twi_status_register = TW_STATUS & 0xF8;
+    //twi_status_register = TW_STATUS & 0xF8;
+    twi_status_register = TW_STATUS; twi_status_register = twi_status_register & 0xF8;
     if ((this->twi_status_register != TW_START) && (this->twi_status_register != TW_REP_START)) {
         return 1;
     }
@@ -48,8 +50,8 @@ uint8_t I2C::start() {
     TWCR = (1<<TWINT) | (1<<TWEN);
 
     while(!(TWCR & (1<<TWINT)));
-
-    this->twi_status_register = TW_STATUS & 0xF8;
+    
+    twi_status_register = TW_STATUS; twi_status_register = twi_status_register & 0xF8;
     if ((this->twi_status_register != TW_MT_SLA_ACK) && (this->twi_status_register != TW_MR_SLA_ACK)) {
         return 1;
     }
@@ -62,8 +64,8 @@ uint8_t I2C::write(uint8_t data) {
     TWCR = (1<<TWINT) | (1<<TWEN);
 
     while(!(TWCR & (1<<TWINT)));
-
-    this->twi_status_register = TW_STATUS & 0xF8;
+    
+    twi_status_register = TW_STATUS; twi_status_register = twi_status_register & 0xF8;
     if (this->twi_status_register != TW_MT_DATA_ACK) {
         return 1;
     } else {
